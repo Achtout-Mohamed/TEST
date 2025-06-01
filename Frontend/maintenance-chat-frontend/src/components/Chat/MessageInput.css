@@ -1,0 +1,305 @@
+/* src/components/Chat/MessageInput.css */
+.message-input {
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  position: relative;
+  z-index: 10;
+}
+
+/* Clean Attachment Previews */
+.attachment-previews {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.attachment-preview {
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 1rem;
+  transition: all 0.2s ease;
+}
+
+.attachment-preview:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(168, 85, 247, 0.3);
+}
+
+.attachment-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.attachment-icon {
+  font-size: 1.5rem;
+}
+
+.attachment-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.attachment-name {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 0.25rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.attachment-size {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.remove-attachment {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  background: rgba(239, 68, 68, 0.8);
+  color: #ffffff;
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: bold;
+  transition: all 0.2s ease;
+}
+
+.remove-attachment:hover {
+  background: rgba(239, 68, 68, 1);
+}
+
+/* Simple Upload Progress */
+.upload-progress {
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background: rgba(16, 185, 129, 0.1);
+  border-radius: 8px;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.progress-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.progress-info::before {
+  content: '📤';
+  font-size: 1.1rem;
+}
+
+/* Clean Form */
+.message-form {
+  display: flex;
+  align-items: flex-end;
+  gap: 1rem;
+}
+
+.message-input-field {
+  flex: 1;
+  padding: 1rem 1.25rem;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
+  font-size: 1rem;
+  color: #ffffff;
+  outline: none;
+  transition: all 0.2s ease;
+  min-height: 50px;
+  max-height: 120px;
+  resize: none;
+  font-family: inherit;
+}
+
+.message-input-field::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.message-input-field:focus {
+  border-color: rgba(168, 85, 247, 0.4);
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.message-input-field:disabled {
+  background: rgba(255, 255, 255, 0.03);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Clean Send Button */
+.send-button {
+  background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 1.1rem;
+  font-weight: bold;
+}
+
+.send-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(124, 58, 237, 0.4);
+}
+
+.send-button:disabled {
+  background: rgba(255, 255, 255, 0.1);
+  cursor: not-allowed;
+  opacity: 0.5;
+  transform: none;
+}
+
+/* File Upload Button */
+.file-upload-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 1rem;
+}
+
+.file-upload-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #ffffff;
+}
+
+.file-upload-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.file-input {
+  display: none;
+}
+
+/* Connection Status */
+.connection-status-indicator {
+  position: absolute;
+  right: 1.5rem;
+  bottom: -1.5rem;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.connected-status {
+  color: #10b981;
+  font-weight: 500;
+}
+
+.connected-status::before {
+  content: '●';
+  margin-right: 0.25rem;
+}
+
+.disconnected-status {
+  color: #ef4444;
+  font-weight: 500;
+}
+
+.disconnected-status::before {
+  content: '●';
+  margin-right: 0.25rem;
+}
+
+/* AI Enhancement Hint */
+.ai-input-enhancement {
+  position: absolute;
+  top: -2.5rem;
+  left: 1.5rem;
+  right: 1.5rem;
+  background: rgba(124, 58, 237, 0.15);
+  border: 1px solid rgba(168, 85, 247, 0.2);
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.8);
+  text-align: center;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .message-input {
+    padding: 1rem;
+  }
+  
+  .message-form {
+    gap: 0.75rem;
+  }
+  
+  .send-button {
+    width: 44px;
+    height: 44px;
+    font-size: 1rem;
+  }
+  
+  .file-upload-btn {
+    width: 40px;
+    height: 40px;
+    font-size: 0.9rem;
+  }
+  
+  .attachment-previews {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+    padding: 0.75rem;
+  }
+  
+  .connection-status-indicator {
+    position: static;
+    margin-top: 1rem;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .message-input-field {
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+  }
+  
+  .send-button {
+    width: 40px;
+    height: 40px;
+    font-size: 0.9rem;
+  }
+}

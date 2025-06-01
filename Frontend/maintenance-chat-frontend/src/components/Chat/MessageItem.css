@@ -1,0 +1,207 @@
+/* MessageItem.css - Simple and clear alignment */
+
+.message-wrapper {
+  width: 100%;
+  margin-bottom: 16px;
+  display: flex;
+}
+
+/* Own messages - RIGHT side */
+.message-wrapper.own {
+  justify-content: flex-end;
+}
+
+.message-wrapper.own .message-content {
+  flex-direction: row-reverse;
+  max-width: 70%;
+}
+
+.message-wrapper.own .bubble {
+  background: #007bff;
+  color: white;
+  margin-right: 8px;
+}
+
+.message-wrapper.own .time {
+  text-align: right;
+}
+
+/* Other users' messages - LEFT side */
+.message-wrapper.other {
+  justify-content: flex-start;
+}
+
+.message-wrapper.other .message-content {
+  flex-direction: row;
+  max-width: 70%;
+}
+
+.message-wrapper.other .bubble {
+  background: #f1f1f1;
+  color: #333;
+  margin-left: 8px;
+}
+
+.message-wrapper.other .time {
+  text-align: left;
+}
+
+/* AI messages - LEFT side with special styling */
+.message-wrapper.ai .bubble {
+  background: #e8f5e8;
+  color: #155724;
+  border-left: 4px solid #28a745;
+}
+
+.message-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: #ddd;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatar-text {
+  font-size: 14px;
+  font-weight: bold;
+  color: #666;
+}
+
+.message-body {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+.sender-name {
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 4px;
+  font-weight: 500;
+}
+
+.bubble {
+  padding: 12px 16px;
+  border-radius: 18px;
+  word-wrap: break-word;
+  width: fit-content;
+  max-width: 100%;
+}
+
+.text {
+  line-height: 1.4;
+  white-space: pre-wrap;
+}
+
+.time {
+  font-size: 11px;
+  color: #888;
+  margin-top: 4px;
+}
+
+.options {
+  display: flex;
+  gap: 4px;
+  margin-left: 8px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.message-wrapper:hover .options {
+  opacity: 1;
+}
+
+.options button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+}
+
+.options button:hover {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+/* Edit form */
+.edit-buttons {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.edit-buttons button {
+  padding: 4px 8px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+/* Attachments */
+.message-attachments {
+  margin-top: 8px;
+}
+
+.attachment-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 8px;
+  margin-bottom: 4px;
+}
+
+.file-attachment {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.attachment-name {
+  color: #007bff;
+  text-decoration: none;
+}
+
+.attachment-size {
+  font-size: 12px;
+  color: #666;
+}
+
+.image-attachment img {
+  max-width: 200px;
+  border-radius: 8px;
+}
+
+.sources {
+  margin-top: 8px;
+  padding: 8px;
+  background: rgba(40, 167, 69, 0.1);
+  border-radius: 4px;
+  font-size: 12px;
+  color: #155724;
+}
+
+.message-loading {
+  padding: 16px;
+  text-align: center;
+  color: #666;
+}
