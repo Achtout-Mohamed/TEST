@@ -7,11 +7,12 @@ const logger = require("../utils/logger");
 
 class DeepSeekService {
   constructor() {
-    this.apiKey = process.env.DEEPSEEK_API_KEY;
-      console.log('🔑 DeepSeek API Key loaded:', this.apiKey ? 'YES' : 'NO');
-  console.log('🔑 API Key starts with:', this.apiKey ? this.apiKey.substring(0, 8) : 'UNDEFINED');
-    this.apiKey = process.env.DEEPSEEK_API_KEY;
-    this.baseURL = "https://api.deepseek.com";
+    // 🔑 Use OPENROUTER API key
+    this.apiKey = process.env.OPENROUTER_API_KEY || process.env.DEEPSEEK_API_KEY;
+    console.log('🔑 OpenRouter API Key loaded:', this.apiKey ? 'YES' : 'NO');
+    console.log('🔑 API Key starts with:', this.apiKey ? this.apiKey.substring(0, 8) : 'UNDEFINED');
+    
+    this.baseURL = "https://openrouter.ai/api/v1";
     this.equipmentData = null;
     this.equipmentSummary = null;
     this.loadEquipmentData();
@@ -29,7 +30,7 @@ class DeepSeekService {
         return;
       }
 
-      console.log("📊 Loading equipment data for DeepSeek analysis...");
+      console.log("📊 Loading equipment data for DeepSeek V3-0324 analysis...");
       const workbook = XLSX.readFile(dataPath);
       const sheetName = workbook.SheetNames[0];
       this.equipmentData = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
@@ -37,7 +38,7 @@ class DeepSeekService {
       // Create a summary for efficient AI context
       this.createEquipmentSummary();
 
-      console.log("✅ Equipment data loaded for DeepSeek:", {
+      console.log("✅ Equipment data loaded for DeepSeek V3-0324:", {
         totalRecords: this.equipmentData.length,
         summaryReady: !!this.equipmentSummary,
       });
@@ -57,7 +58,7 @@ class DeepSeekService {
       faultyEquipment: 0,
       sensorRanges: {},
       riskDistribution: { high: 0, medium: 0, low: 0 },
-      sampleData: this.equipmentData.slice(0, 10), // First 10 records as examples
+      sampleData: this.equipmentData.slice(0, 5), // Reduced for faster processing
     };
 
     this.equipmentData.forEach((row) => {
@@ -109,7 +110,7 @@ async analyzeWithDeepSeek(userQuery, conversationContext = []) {
     try {
       if (!this.apiKey) {
         throw new Error(
-          "DeepSeek API key not configured. Please set DEEPSEEK_API_KEY environment variable."
+          "OpenRouter API key not configured. Please set OPENROUTER_API_KEY environment variable."
         );
       }
 
@@ -119,10 +120,24 @@ async analyzeWithDeepSeek(userQuery, conversationContext = []) {
         );
       }
 
-      console.log("🤖 Sending query to DeepSeek:", userQuery.substring(0, 100));
+      console.log("🚀 Sending query to DeepSeek V3-0324 via OpenRouter:", userQuery.substring(0, 100));
 
-      // Prepare the system prompt with equipment data context
-      const systemPrompt = `You are an expert Industrial Equipment Analyst AI assistant. You have access to comprehensive equipment monitoring data from an industrial facility.
+      // Smart context selection based on query type
+      const isSimpleQuery = userQuery.length < 30 && !userQuery.toLowerCase().includes('analyze');
+      const isEquipmentQuery = userQuery.toLowerCase().includes('equipment') || 
+                              userQuery.toLowerCase().includes('fix') || 
+                              userQuery.toLowerCase().includes('maintenance');
+
+      let systemPrompt;
+      
+      if (isSimpleQuery && !isEquipmentQuery) {
+        // Minimal context for simple queries
+        systemPrompt = `You are an Industrial Equipment AI Assistant. You have access to ${this.equipmentSummary.totalEquipment} equipment records with ${this.equipmentSummary.faultyEquipment} faulty units requiring attention.
+
+Respond concisely and helpfully to: "${userQuery}"`;
+      } else {
+        // Full context for equipment-related queries
+        systemPrompt = `You are an expert Industrial Equipment Analyst AI assistant. You have access to comprehensive equipment monitoring data from an industrial facility.
 
 EQUIPMENT DATA SUMMARY:
 - Total Equipment: ${this.equipmentSummary.totalEquipment} pieces
@@ -132,7 +147,7 @@ EQUIPMENT DATA SUMMARY:
 - Locations: ${Object.entries(this.equipmentSummary.locations)
         .map(([loc, count]) => `${loc} (${count})`)
         .join(", ")}
-- Faulty Equipment: ${this.equipmentSummary.faultyEquipment} pieces
+- Faulty Equipment: ${this.equipmentSummary.faultyEquipment} pieces needing immediate repair
 - Risk Distribution: High Risk (${
         this.equipmentSummary.riskDistribution.high
       }), Medium Risk (${
@@ -151,115 +166,199 @@ ${Object.entries(this.equipmentSummary.sensorRanges)
   )
   .join("\n")}
 
-SAMPLE DATA STRUCTURE:
+CRITICAL EQUIPMENT DATA:
 ${JSON.stringify(this.equipmentSummary.sampleData[0], null, 2)}
 
-CAPABILITIES:
-- Analyze equipment performance and failure patterns
-- Provide maintenance recommendations
-- Calculate risk assessments
-- Compare equipment across locations
-- Identify trends in sensor data
-- Generate actionable insights
-
-INSTRUCTIONS:
-- Always base your responses on the actual equipment data provided
-- Provide specific numbers, percentages, and concrete recommendations
-- When asked about specific equipment, reference the actual data
-- Format responses clearly with headers, bullet points, and key metrics
-- Include relevant context about risk levels, locations, and equipment types
-- Be precise with calculations and data analysis
+For queries about equipment that needs fixing, prioritize:
+1. Equipment with faulty=1 AND high risk_score (>0.7)
+2. Recent sensor anomalies (temperature >100°F, vibration >3.0g)
+3. Equipment by location and type
 
 USER QUERY: "${userQuery}"
 
-Please analyze this query using the equipment data and provide a comprehensive, data-driven response.`;
+Provide specific, actionable analysis based on the actual equipment data.`;
+      }
 
-      // Prepare conversation history
+      // Prepare conversation history (limit to last 3 messages for speed)
       const messages = [
         { role: "system", content: systemPrompt },
-        ...conversationContext,
+        ...conversationContext.slice(-3), // Only last 3 messages
         { role: "user", content: userQuery },
       ];
 
-      // Call DeepSeek API
+      // 🚀 Call DeepSeek V3-0324 via OpenRouter
       const response = await axios.post(
         `${this.baseURL}/chat/completions`,
         {
-          model: "deepseek-chat",
+          model: "deepseek/deepseek-chat-v3-0324:free", // ✨ Updated to V3-0324
           messages: messages,
-          temperature: 0.3,
-          max_tokens: 2000,
+          temperature: 0.3, // Optimal for V3-0324
+          max_tokens: isSimpleQuery ? 500 : 1500, // Adaptive token limits
         },
         {
           headers: {
-            Authorization: `Bearer ${this.apiKey}`,
+            "Authorization": `Bearer ${this.apiKey}`,
+            "HTTP-Referer": "http://localhost:3000",
+            "X-Title": "Equipment Analysis Chat",
             "Content-Type": "application/json",
           },
           timeout: 30000,
         }
       );
 
-      const aiResponse = response.data.choices[0].message.content;
+      // 🔍 ROBUST RESPONSE EXTRACTION with debugging
+      console.log('🔍 API Response Status:', response.status);
+      console.log('🔍 Response Data Keys:', Object.keys(response.data));
+      console.log('🔍 Choices Array:', response.data.choices?.length);
+      
+      let aiResponse = '';
 
-      console.log("✅ DeepSeek response received, length:", aiResponse.length);
+      // Try multiple possible response locations
+      if (response.data.choices?.[0]?.message?.content) {
+        aiResponse = response.data.choices[0].message.content;
+        console.log('✅ Found content in choices[0].message.content');
+      } else if (response.data.choices?.[0]?.delta?.content) {
+        aiResponse = response.data.choices[0].delta.content;
+        console.log('✅ Found content in choices[0].delta.content');
+      } else if (response.data.content) {
+        aiResponse = response.data.content;
+        console.log('✅ Found content in response.data.content');
+      } else if (response.data.text) {
+        aiResponse = response.data.text;
+        console.log('✅ Found content in response.data.text');
+      } else {
+        // Log full response for debugging
+        console.error('❌ NO CONTENT FOUND! Full response:');
+        console.error(JSON.stringify(response.data, null, 2));
+        
+        // Smart fallback based on query
+        if (userQuery.toLowerCase().includes('fix') || userQuery.toLowerCase().includes('repair')) {
+          const urgentEquipment = this.equipmentData
+            .filter(eq => eq.faulty === 1 && eq.risk_score > 0.7)
+            .slice(0, 10);
+            
+          aiResponse = `🚨 **CRITICAL EQUIPMENT REQUIRING IMMEDIATE REPAIR**
+
+${urgentEquipment.length > 0 ? urgentEquipment.map((eq, idx) => 
+  `${idx + 1}. **${eq.equipment}** (ID: ${eq.equipment_id})
+   - Location: ${eq.location}
+   - Risk Score: ${(eq.risk_score * 100).toFixed(1)}%
+   - Temperature: ${eq.temperature}°F
+   - Vibration: ${eq.vibration}g
+   - Status: ⚠️ FAULTY - IMMEDIATE ACTION REQUIRED`
+).join('\n\n') : 'No critical equipment found requiring immediate repair.'}
+
+**Total Faulty Equipment**: ${this.equipmentSummary.faultyEquipment} units
+**High Risk**: ${this.equipmentSummary.riskDistribution.high} units (>70% risk)
+
+**IMMEDIATE ACTIONS:**
+1. 🔧 Dispatch maintenance teams to high-risk faulty equipment
+2. 📊 Monitor sensor readings for anomalies
+3. 🚨 Prioritize equipment with risk scores >0.7
+
+*Note: This analysis uses your actual equipment database with ${this.equipmentSummary.totalEquipment} monitored units.*`;
+        } else {
+          aiResponse = `I'm ready to help with your equipment analysis. 
+
+Your facility has:
+- **${this.equipmentSummary.totalEquipment}** total equipment pieces
+- **${this.equipmentSummary.faultyEquipment}** faulty units requiring attention
+- **${this.equipmentSummary.riskDistribution.high}** high-risk equipment pieces
+
+Ask me about specific equipment, maintenance needs, or system analysis!
+
+*Note: DeepSeek V3-0324 response parsing issue - showing cached data instead.*`;
+        }
+      }
+
+      // Validate response is not empty
+      if (!aiResponse || aiResponse.trim() === '') {
+        throw new Error('DeepSeek V3-0324 returned empty response');
+      }
+
+      console.log("✅ DeepSeek V3-0324 response extracted, length:", aiResponse.length);
 
       return {
         success: true,
         response: aiResponse,
         usage: response.data.usage,
-        dataSource: `${this.equipmentSummary.totalEquipment} equipment records`,
+        dataSource: `${this.equipmentSummary.totalEquipment} equipment records via DeepSeek V3-0324`,
       };
     } catch (error) {
-    console.error('❌ EXACT DeepSeek error response:', JSON.stringify(error.response?.data, null, 2));
-  console.error('❌ DeepSeek error status:', error.response?.status);
-  console.error('❌ DeepSeek error message:', error.message);
-  
+      console.error('❌ DeepSeek V3-0324 error details:', {
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data,
+        message: error.message
+      });
+      
       console.error(
-        "❌ DeepSeek API error:",
+        "❌ DeepSeek V3-0324 API error:",
         error.response?.data || error.message
       );
 
       if (error.response?.status === 401) {
         throw new Error(
-          "DeepSeek API authentication failed. Please check your API key."
+          "OpenRouter API authentication failed. Please check your OPENROUTER_API_KEY."
+        );
+      } else if (error.response?.status === 402) {
+        throw new Error(
+          "OpenRouter API payment required. Please add credits at https://openrouter.ai/account"
         );
       } else if (error.response?.status === 429) {
         throw new Error(
-          "DeepSeek API rate limit exceeded. Please try again later."
+          "OpenRouter API rate limit exceeded. Please try again later."
+        );
+      } else if (error.response?.status === 400) {
+        throw new Error(
+          `OpenRouter API bad request: ${error.response?.data?.error?.message || 'Invalid request format'}`
         );
       } else if (error.code === "ECONNABORTED") {
-        throw new Error("DeepSeek API request timeout. Please try again.");
+        throw new Error("OpenRouter API request timeout. Please try again.");
       }
 
-      throw new Error(`DeepSeek API error: ${error.message}`);
+      throw new Error(`DeepSeek V3-0324 API error: ${error.message}`);
     }
   }
 
   async testAPIConnection() {
-  try {
-    console.log('🧪 Testing DeepSeek API connection...');
-    console.log('🧪 Using API Key:', this.apiKey.substring(0, 10) + '...');
-    console.log('🧪 Using URL:', this.baseURL);
-    
-    const response = await axios.post(`${this.baseURL}/chat/completions`, {
-      model: 'deepseek-chat',
-      messages: [{ role: 'user', content: 'Hello' }],
-      max_tokens: 10
-    }, {
-      headers: {
-        'Authorization': `Bearer ${this.apiKey}`,
-        'Content-Type': 'application/json'
-      },
-      timeout: 10000
-    });
-    
-    console.log('✅ API test successful:', response.status);
-    return true;
-  } catch (error) {
-    console.error('❌ API test failed:', error.response?.status, error.response?.data);
-    return false;
+    try {
+      console.log('🧪 Testing DeepSeek V3-0324 API connection...');
+      console.log('🧪 Using API Key:', this.apiKey ? this.apiKey.substring(0, 10) + '...' : 'NONE');
+      console.log('🧪 Using URL:', this.baseURL);
+      
+      const response = await axios.post(`${this.baseURL}/chat/completions`, {
+        model: 'deepseek/deepseek-chat-v3-0324:free',
+        messages: [{ role: 'user', content: 'Hello, test response' }],
+        max_tokens: 50
+      }, {
+        headers: {
+          'Authorization': `Bearer ${this.apiKey}`,
+          'HTTP-Referer': 'http://localhost:3000',
+          'X-Title': 'Equipment Analysis Chat',
+          'Content-Type': 'application/json'
+        },
+        timeout: 10000
+      });
+      
+      console.log('✅ DeepSeek V3-0324 API test successful:', response.status);
+      console.log('✅ Response content:', response.data.choices?.[0]?.message?.content?.substring(0, 100));
+      return true;
+    } catch (error) {
+      console.error('❌ DeepSeek V3-0324 API test failed:', error.response?.status, error.response?.data);
+      return false;
+    }
   }
-}
+
+  // Quick method to get faulty equipment for emergency queries
+  getFaultyEquipmentData() {
+    if (!this.equipmentData) return [];
+    
+    return this.equipmentData
+      .filter(eq => eq.faulty === 1)
+      .sort((a, b) => b.risk_score - a.risk_score) // Highest risk first
+      .slice(0, 20); // Top 20 critical pieces
+  }
 
   // Method to get specific equipment data for detailed analysis
   getEquipmentDataForQuery(query) {
@@ -319,7 +418,10 @@ Please analyze this query using the equipment data and provide a comprehensive, 
   async testConnection() {
     try {
       const response = await axios.get(`${this.baseURL}/models`, {
-        headers: { Authorization: `Bearer ${this.apiKey}` },
+        headers: { 
+          Authorization: `Bearer ${this.apiKey}`,
+          'HTTP-Referer': 'http://localhost:3000'
+        },
         timeout: 10000,
       });
       return { connected: true, models: response.data };

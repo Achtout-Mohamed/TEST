@@ -1,348 +1,3 @@
-// // api/controllers/messageController.js
-
-// const Message = require('../../models/Message');
-// const Conversation = require('../../models/Conversation');
-// const mongoose = require('mongoose');
-// const logger = require('../../utils/logger');
-
-// /**
-//  * @desc    Create a new message
-//  * @route   POST /api/messages
-//  * @access  Private
-//  */
-// exports.createMessage = async (req, res, next) => {
-//   try {
-//     const { conversationId, content, attachments, mentions } = req.body;
-
-//     // Validate conversation ID
-//     if (!mongoose.isValidObjectId(conversationId)) {
-//       return res.status(400).json({
-//         success: false,
-//         message: 'Invalid conversation ID format'
-//       });
-//     }
-
-//     // Check if conversation exists
-//     const conversation = await Conversation.findById(conversationId);
-//     if (!conversation) {
-//       return res.status(404).json({
-//         success: false,
-//         message: 'Conversation not found'
-//       });
-//     }
-
-//     // Check if user is a participant in the conversation
-//     if (!conversation.participants.includes(req.user._id)) {
-//       return res.status(403).json({
-//         success: false,
-//         message: 'You are not a participant in this conversation'
-//       });
-//     }
-
-//     // Validate content
-//     if (!content || content.trim() === '') {
-//       return res.status(400).json({
-//         success: false,
-//         message: 'Message content is required'
-//       });
-//     }
-
-//     // Create the message
-//     const message = await Message.create({
-//       conversationId,
-//       sender: req.user._id,
-//       isUser: true,
-//       content,
-//       attachments: attachments || [],
-//       mentions: mentions || [],
-//       readBy: [{ user: req.user._id }]  // Mark as read by sender
-//     });
-
-//     // Populate sender details
-//     const populatedMessage = await Message.findById(message._id)
-//       .populate('sender', 'name email avatar')
-//       .populate('mentions', 'name email avatar');
-
-//     // Update conversation's lastMessageAt timestamp
-//     await Conversation.findByIdAndUpdate(conversationId, {
-//       lastMessageAt: Date.now()
-//     });
-
-//     // Send the response
-//     return res.status(201).json({
-//       success: true,
-//       data: populatedMessage
-//     });
-//   } catch (error) {
-//     logger.error(`Create message error: ${error.message}`);
-//     next(error);
-//   }
-// };
-
-// /**
-//  * @desc    Get messages for a conversation
-//  * @route   GET /api/conversations/:conversationId/messages
-//  * @access  Private
-//  */
-// exports.getMessages = async (req, res, next) => {
-//   try {
-//     const { conversationId } = req.params;
-//     const page = parseInt(req.query.page) || 1;
-//     const limit = parseInt(req.query.limit) || 20;
-//     const skip = (page - 1) * limit;
-
-//     // Validate conversation ID
-//     if (!mongoose.isValidObjectId(conversationId)) {
-//       return res.status(400).json({
-//         success: false,
-//         message: 'Invalid conversation ID format'
-//       });
-//     }
-
-//     // Check if conversation exists
-//     const conversation = await Conversation.findById(conversationId);
-//     if (!conversation) {
-//       return res.status(404).json({
-//         success: false,
-//         message: 'Conversation not found'
-//       });
-//     }
-
-//     // Check if user is a participant in the conversation
-//     if (!conversation.participants.includes(req.user._id)) {
-//       return res.status(403).json({
-//         success: false,
-//         message: 'You are not a participant in this conversation'
-//       });
-//     }
-
-//     // Get messages with pagination (newest first)
-//     const messages = await Message.find({ conversationId })
-//       .sort({ createdAt: -1 })
-//       .skip(skip)
-//       .limit(limit)
-//       .populate('sender', 'name email avatar')
-//       .populate('mentions', 'name email avatar');
-
-//     // Get total count for pagination
-//     const total = await Message.countDocuments({ conversationId });
-
-//     // Mark messages as read by this user
-//     await Message.updateMany(
-//       { 
-//         conversationId,
-//         'readBy.user': { $ne: req.user._id } 
-//       },
-//       {
-//         $push: { readBy: { user: req.user._id, readAt: new Date() } }
-//       }
-//     );
-
-//     return res.status(200).json({
-//       success: true,
-//       count: messages.length,
-//       total,
-//       totalPages: Math.ceil(total / limit),
-//       currentPage: page,
-//       data: messages
-//     });
-//   } catch (error) {
-//     logger.error(`Get messages error: ${error.message}`);
-//     next(error);
-//   }
-// };
-
-// /**
-//  * @desc    Update a message
-//  * @route   PUT /api/messages/:id
-//  * @access  Private
-//  */
-// exports.updateMessage = async (req, res, next) => {
-//   try {
-//     const { id } = req.params;
-//     const { content } = req.body;
-
-//     // Validate message ID
-//     if (!mongoose.isValidObjectId(id)) {
-//       return res.status(400).json({
-//         success: false,
-//         message: 'Invalid message ID format'
-//       });
-//     }
-
-//     // Find the message
-//     const message = await Message.findById(id);
-//     if (!message) {
-//       return res.status(404).json({
-//         success: false,
-//         message: 'Message not found'
-//       });
-//     }
-
-//     // Check if user is the sender of the message
-//     if (message.sender.toString() !== req.user._id.toString()) {
-//       return res.status(403).json({
-//         success: false,
-//         message: 'You can only edit your own messages'
-//       });
-//     }
-
-//     // Check if content is provided
-//     if (!content || content.trim() === '') {
-//       return res.status(400).json({
-//         success: false,
-//         message: 'Message content is required'
-//       });
-//     }
-
-//     // Update the message
-//     message.content = content;
-//     await message.save();
-
-//     // Populate sender details
-//     const updatedMessage = await Message.findById(id)
-//       .populate('sender', 'name email avatar')
-//       .populate('mentions', 'name email avatar');
-
-//     return res.status(200).json({
-//       success: true,
-//       data: updatedMessage
-//     });
-//   } catch (error) {
-//     logger.error(`Update message error: ${error.message}`);
-//     next(error);
-//   }
-// };
-
-// /**
-//  * @desc    Delete a message
-//  * @route   DELETE /api/messages/:id
-//  * @access  Private
-//  */
-// exports.deleteMessage = async (req, res, next) => {
-//   try {
-//     const { id } = req.params;
-
-//     // Validate message ID
-//     if (!mongoose.isValidObjectId(id)) {
-//       return res.status(400).json({
-//         success: false,
-//         message: 'Invalid message ID format'
-//       });
-//     }
-
-//     // Find the message
-//     const message = await Message.findById(id);
-//     if (!message) {
-//       return res.status(404).json({
-//         success: false,
-//         message: 'Message not found'
-//       });
-//     }
-
-//     // Check if user is the sender of the message
-//     if (message.sender.toString() !== req.user._id.toString()) {
-//       return res.status(403).json({
-//         success: false,
-//         message: 'You can only delete your own messages'
-//       });
-//     }
-
-//     // Delete the message
-//     await message.deleteOne();
-
-//     return res.status(200).json({
-//       success: true,
-//       message: 'Message deleted successfully',
-//       data: {}
-//     });
-//   } catch (error) {
-//     logger.error(`Delete message error: ${error.message}`);
-//     next(error);
-//   }
-// };
-
-// /**
-//  * @desc    Search messages
-//  * @route   GET /api/messages/search
-//  * @access  Private
-//  */
-// exports.searchMessages = async (req, res, next) => {
-//   try {
-//     const { query, conversationId } = req.query;
-    
-//     if (!query) {
-//       return res.status(400).json({
-//         success: false,
-//         message: 'Search query is required'
-//       });
-//     }
-    
-//     // Build the search query
-//     const searchQuery = {
-//       $text: { $search: query }
-//     };
-    
-//     // If conversationId is provided, limit search to that conversation
-//     if (conversationId) {
-//       if (!mongoose.isValidObjectId(conversationId)) {
-//         return res.status(400).json({
-//           success: false,
-//           message: 'Invalid conversation ID format'
-//         });
-//       }
-      
-//       searchQuery.conversationId = conversationId;
-      
-//       // Check if user is participant in the conversation
-//       const conversation = await Conversation.findById(conversationId);
-//       if (!conversation) {
-//         return res.status(404).json({
-//           success: false,
-//           message: 'Conversation not found'
-//         });
-//       }
-      
-//       if (!conversation.participants.includes(req.user._id)) {
-//         return res.status(403).json({
-//           success: false,
-//           message: 'You are not a participant in this conversation'
-//         });
-//       }
-//     } else {
-//       // If no conversationId provided, only search in conversations where user is a participant
-//       const userConversations = await Conversation.find({
-//         participants: req.user._id
-//       });
-      
-//       const conversationIds = userConversations.map(c => c._id);
-//       searchQuery.conversationId = { $in: conversationIds };
-//     }
-    
-//     // Execute the search
-//     const messages = await Message.find(searchQuery)
-//       .sort({ score: { $meta: 'textScore' } })
-//       .populate('sender', 'name email avatar')
-//       .populate('conversationId', 'title')
-//       .limit(20);
-    
-//     return res.status(200).json({
-//       success: true,
-//       count: messages.length,
-//       data: messages
-//     });
-//   } catch (error) {
-//     logger.error(`Search messages error: ${error.message}`);
-//     next(error);
-//   }
-// };
-
-
-// Updated messageController.js with Socket.IO
-
-// Enhanced messageController.js with intelligent document processing
-// Enhanced messageController.js with intelligent document processing
-// Enhanced messageController.js with intelligent document processing
 
 const Message = require('../../models/Message');
 const Conversation = require('../../models/Conversation');
@@ -401,7 +56,6 @@ const fixExistingAIConversation = async () => {
 // Initialize on startup
 initializeAIBot().then(() => {
   console.log('AI Bot setup complete');
-  // Run the fix after AI bot is initialized
   setTimeout(() => {
     fixExistingAIConversation();
   }, 1000);
@@ -410,7 +64,7 @@ initializeAIBot().then(() => {
 });
 
 /**
- * Enhanced message creation with intelligent AI responses
+ * Enhanced message creation with FIXED SOCKET EMISSION
  */
 exports.createMessage = async (req, res, next) => {
   try {
@@ -500,13 +154,14 @@ exports.createMessage = async (req, res, next) => {
       lastMessageAt: Date.now()
     });
 
-    // Emit message via Socket.IO
+    // 🔥 FIXED: Emit message via Socket.IO with CORRECT ROOM NAME
     const io = req.app.get('io');
     if (io) {
-      io.to(conversationId).emit('new_message', populatedMessage);
+      console.log(`📡 Emitting new_message to conversation_${conversationId}`);
+      io.to(`conversation_${conversationId}`).emit('new_message', populatedMessage);
       
       // Also emit typing stopped event
-      io.to(conversationId).emit('typing', {
+      io.to(`conversation_${conversationId}`).emit('typing', {
         conversationId,
         userId: req.user._id,
         isTyping: false
@@ -623,7 +278,7 @@ async function shouldGenerateAIResponse(content, conversation, attachments) {
 }
 
 /**
- * Generate intelligent AI response using RAG system
+ * Generate intelligent AI response using RAG system - FIXED SOCKET EMISSION
  */
 async function generateIntelligentAIResponse(conversationId, userMessage, attachments, io) {
   try {
@@ -632,10 +287,10 @@ async function generateIntelligentAIResponse(conversationId, userMessage, attach
       userMessage: userMessage.substring(0, 50) 
     });
 
-    // Show typing indicator
+    // Show typing indicator - FIXED ROOM NAME
     if (io) {
       console.log('📡 Showing typing indicator');
-      io.to(conversationId).emit('typing', {
+      io.to(`conversation_${conversationId}`).emit('typing', {
         conversationId,
         userId: AI_BOT_USER_ID,
         userName: 'AI Assistant',
@@ -665,29 +320,27 @@ async function generateIntelligentAIResponse(conversationId, userMessage, attach
         }));
 
       // Call DeepSeek AI
-      // Test the API connection first
-const apiTest = await deepseekService.testAPIConnection();
-console.log('🧪 API test result:', apiTest);
+      const apiTest = await deepseekService.testAPIConnection();
+      console.log('🧪 API test result:', apiTest);
       const aiResult = await deepseekService.analyzeWithDeepSeek(userMessage, conversationContext);
       
       if (aiResult.success) {
-        finalResponse = aiResult.response;
-        sources = {
-          totalSources: 1,
-          dataSource: aiResult.dataSource,
-          usage: aiResult.usage
-        };
+  finalResponse = aiResult.response; // No footer added
+  sources = {
+    totalSources: 1,
+    dataSource: aiResult.dataSource,
+    usage: aiResult.usage
+  };
         
         // Add source attribution
-        finalResponse += `\n\n---\n*Analysis powered by DeepSeek AI • Data source: ${aiResult.dataSource}*`;
         
         console.log('✅ DeepSeek analysis completed:', {
-          responseLength: finalResponse.length,
-          tokensUsed: aiResult.usage
-        });
-      } else {
-        throw new Error('DeepSeek analysis failed');
-      }
+    responseLength: finalResponse.length,
+    tokensUsed: aiResult.usage
+  });
+} else {
+  throw new Error('DeepSeek analysis failed');
+}
       
     } catch (error) {
       console.error('❌ DeepSeek AI error:', error.message);
@@ -738,10 +391,10 @@ I have access to the equipment database, but the AI analysis service is currentl
       }
     }
 
-    // Stop typing indicator
+    // Stop typing indicator - FIXED ROOM NAME
     if (io) {
       console.log('📡 Stopping typing indicator');
-      io.to(conversationId).emit('typing', {
+      io.to(`conversation_${conversationId}`).emit('typing', {
         conversationId,
         userId: AI_BOT_USER_ID,
         userName: 'AI Assistant',
@@ -773,10 +426,10 @@ I have access to the equipment database, but the AI analysis service is currentl
       lastMessageAt: Date.now()
     });
 
-    // Emit AI response via Socket.IO
+    // 🔥 FIXED: Emit AI response via Socket.IO with CORRECT ROOM NAME
     if (io) {
       console.log('📡 Emitting AI response via Socket.IO');
-      io.to(conversationId).emit('new_message', populatedAIMessage);
+      io.to(`conversation_${conversationId}`).emit('new_message', populatedAIMessage);
     }
 
     console.log('✅ DeepSeek AI response completed successfully');
@@ -789,7 +442,7 @@ I have access to the equipment database, but the AI analysis service is currentl
     console.error('❌ AI response generation error:', error);
     logger.error(`AI response generation error: ${error.message}`);
     
-    // Send fallback error message
+    // Send fallback error message - FIXED ROOM NAME
     try {
       const errorMessage = await Message.create({
         conversationId,
@@ -811,8 +464,8 @@ Error details: ${error.message}`,
         .populate('sender', 'name email avatar');
 
       if (io) {
-        io.to(conversationId).emit('new_message', populatedErrorMessage);
-        io.to(conversationId).emit('typing', {
+        io.to(`conversation_${conversationId}`).emit('new_message', populatedErrorMessage);
+        io.to(`conversation_${conversationId}`).emit('typing', {
           conversationId,
           userId: AI_BOT_USER_ID,
           isTyping: false
@@ -936,7 +589,7 @@ exports.clearConversationDocuments = async (req, res, next) => {
 };
 
 /**
- * @desc    Get messages for a conversation
+ * @desc    Get messages for a conversation - FIXED SOCKET EMISSION
  * @route   GET /api/conversations/:conversationId/messages
  * @access  Private
  */
@@ -1016,11 +669,11 @@ exports.getMessages = async (req, res, next) => {
     // Wait for all read operations to complete
     await Promise.all(readPromises);
 
-    // Emit read receipts via Socket.IO
+    // 🔥 FIXED: Emit read receipts via Socket.IO with CORRECT ROOM NAME
     const io = req.app.get('io');
     if (io && unreadMessageIds.length > 0) {
       unreadMessageIds.forEach(messageId => {
-        io.to(conversationId).emit('message_read', {
+        io.to(`conversation_${conversationId}`).emit('message_read', {
           messageId,
           userId: req.user._id,
           conversationId
@@ -1043,7 +696,7 @@ exports.getMessages = async (req, res, next) => {
 };
 
 /**
- * @desc    Update a message
+ * @desc    Update a message - FIXED SOCKET EMISSION
  * @route   PUT /api/messages/:id
  * @access  Private
  */
@@ -1096,10 +749,10 @@ exports.updateMessage = async (req, res, next) => {
       .populate('mentions', 'name email avatar')
       .populate('readBy.user', 'name email avatar');
 
-    // Emit message updated event via Socket.IO
+    // 🔥 FIXED: Emit message updated event via Socket.IO with CORRECT ROOM NAME
     const io = req.app.get('io');
     if (io) {
-      io.to(message.conversationId.toString()).emit('message_updated', updatedMessage);
+      io.to(`conversation_${message.conversationId.toString()}`).emit('message_updated', updatedMessage);
     }
 
     return res.status(200).json({
@@ -1113,7 +766,7 @@ exports.updateMessage = async (req, res, next) => {
 };
 
 /**
- * @desc    Delete a message
+ * @desc    Delete a message - FIXED SOCKET EMISSION
  * @route   DELETE /api/messages/:id
  * @access  Private
  */
@@ -1150,10 +803,10 @@ exports.deleteMessage = async (req, res, next) => {
     const conversationId = message.conversationId;
     await message.deleteOne();
 
-    // Emit message deleted event via Socket.IO
+    // 🔥 FIXED: Emit message deleted event via Socket.IO with CORRECT ROOM NAME
     const io = req.app.get('io');
     if (io) {
-      io.to(conversationId.toString()).emit('message_deleted', {
+      io.to(`conversation_${conversationId.toString()}`).emit('message_deleted', {
         messageId: id,
         conversationId: conversationId.toString()
       });
@@ -1247,7 +900,7 @@ exports.searchMessages = async (req, res, next) => {
 };
 
 /**
- * @desc    Mark messages as read
+ * @desc    Mark messages as read - FIXED SOCKET EMISSION
  * @route   POST /api/messages/:conversationId/read
  * @access  Private
  */
@@ -1308,10 +961,10 @@ exports.markAsRead = async (req, res, next) => {
       });
       await message.save();
       
-      // Emit read receipt event
+      // 🔥 FIXED: Emit read receipt event with CORRECT ROOM NAME
       const io = req.app.get('io');
       if (io) {
-        io.to(conversationId).emit('message_read', {
+        io.to(`conversation_${conversationId}`).emit('message_read', {
           messageId: message._id,
           userId: req.user._id,
           conversationId
@@ -1338,7 +991,7 @@ exports.markAsRead = async (req, res, next) => {
 };
 
 /**
- * @desc    Send typing indicator
+ * @desc    Send typing indicator - FIXED SOCKET EMISSION
  * @route   POST /api/messages/:conversationId/typing
  * @access  Private
  */
@@ -1371,10 +1024,10 @@ exports.sendTypingIndicator = async (req, res, next) => {
       });
     }
 
-    // Emit typing event via Socket.IO
+    // 🔥 FIXED: Emit typing event via Socket.IO with CORRECT ROOM NAME
     const io = req.app.get('io');
     if (io) {
-      io.to(conversationId).emit('typing', {
+      io.to(`conversation_${conversationId}`).emit('typing', {
         conversationId,
         userId: req.user._id,
         userName: req.user.name,

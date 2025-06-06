@@ -1,242 +1,3 @@
-// import React, { createContext, useState, useEffect } from 'react';
-// import api from '../services/api';
-
-// // Create context
-// export const AuthContext = createContext();
-
-// export const AuthProvider = ({ children }) => {
-//   const [user, setUser] = useState(null);
-//   const [token, setToken] = useState(localStorage.getItem('token'));
-//   const [loading, setLoading] = useState(true);
-//   const [error, setError] = useState(null);
-//   const [needsRoleSelection, setNeedsRoleSelection] = useState(false);
-  
-//   // Check if user is authenticated on mount
-//   useEffect(() => {
-//     const loadUserFromStorage = () => {
-//       try {
-//         // Get user from local storage
-//         const storedUser = localStorage.getItem('user');
-        
-//         if (storedUser && token) {
-//           const userData = JSON.parse(storedUser);
-//           setUser(userData);
-//           setNeedsRoleSelection(userData.needsRoleSelection || false);
-//         }
-        
-//         setLoading(false);
-//       } catch (error) {
-//         console.error('Error loading user from storage:', error);
-//         setLoading(false);
-//       }
-//     };
-    
-//     loadUserFromStorage();
-//   }, [token]);
-  
-//   // Fetch current user profile if token exists but no user
-//   useEffect(() => {
-//     const fetchUserProfile = async () => {
-//       if (token && !user) {
-//         try {
-//           setLoading(true);
-          
-//           const res = await api.get('/auth/me');
-          
-//           if (res.data.success) {
-//             setUser(res.data.user);
-//             localStorage.setItem('user', JSON.stringify(res.data.user));
-//           }
-//         } catch (error) {
-//           console.error('Error fetching user profile:', error);
-//           // Clear token if invalid
-//           if (error.response && error.response.status === 401) {
-//             localStorage.removeItem('token');
-//             setToken(null);
-//           }
-//         } finally {
-//           setLoading(false);
-//         }
-//       }
-//     };
-    
-//     fetchUserProfile();
-//   }, [token, user]);
-  
-//   // Register user
-//   const register = async (userData) => {
-//     try {
-//       setLoading(true);
-//       setError(null);
-      
-//       const res = await api.post('/auth/register', userData);
-      
-//       if (res.data.success) {
-//         setUser(res.data.user);
-//         setToken(res.data.token);
-//         setNeedsRoleSelection(false);
-//         localStorage.setItem('token', res.data.token);
-//         localStorage.setItem('user', JSON.stringify(res.data.user));
-//       }
-      
-//       return { success: true, data: res.data };
-//     } catch (error) {
-//       setError(error.response?.data?.message || 'Registration failed');
-//       return { success: false, error: error.response?.data || error.message };
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-  
-//   // Login user
-//   const login = async (email, password) => {
-//     try {
-//       setLoading(true);
-//       setError(null);
-      
-//       const res = await api.post('/auth/login', { email, password });
-      
-//       if (res.data.success) {
-//         setUser(res.data.user);
-//         setToken(res.data.token);
-//         setNeedsRoleSelection(res.data.user.needsRoleSelection || false);
-//         localStorage.setItem('token', res.data.token);
-//         localStorage.setItem('user', JSON.stringify(res.data.user));
-//       }
-      
-//       return { success: true, data: res.data };
-//     } catch (error) {
-//       setError(error.response?.data?.message || 'Login failed');
-//       return { success: false, error: error.response?.data || error.message };
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   // Google OAuth login
-//   const googleLogin = async (credential) => {
-//     try {
-//       setLoading(true);
-//       setError(null);
-      
-//       const res = await api.post('/auth/google', { credential });
-      
-//       if (res.data.success) {
-//         setUser(res.data.user);
-//         setToken(res.data.token);
-//         setNeedsRoleSelection(res.data.user.needsRoleSelection || false);
-//         localStorage.setItem('token', res.data.token);
-//         localStorage.setItem('user', JSON.stringify(res.data.user));
-//       }
-      
-//       return { success: true, data: res.data };
-//     } catch (error) {
-//       setError(error.response?.data?.message || 'Google login failed');
-//       return { success: false, error: error.response?.data || error.message };
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   // Update user role (for Google OAuth users)
-//   const updateUserRole = async (role) => {
-//     try {
-//       setLoading(true);
-//       setError(null);
-      
-//       const res = await api.put('/auth/role', { role });
-      
-//       if (res.data.success) {
-//         const updatedUser = res.data.user;
-//         setUser(updatedUser);
-//         setNeedsRoleSelection(false);
-//         localStorage.setItem('user', JSON.stringify(updatedUser));
-//       }
-      
-//       return { success: true, data: res.data };
-//     } catch (error) {
-//       setError(error.response?.data?.message || 'Role update failed');
-//       return { success: false, error: error.response?.data || error.message };
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-  
-//   // Logout user
-//   const logout = () => {
-//     // Remove user from context
-//     setUser(null);
-//     setToken(null);
-//     setNeedsRoleSelection(false);
-    
-//     // Remove from local storage
-//     localStorage.removeItem('token');
-//     localStorage.removeItem('user');
-//   };
-  
-//   // Update user profile
-//   const updateProfile = async (userData) => {
-//     try {
-//       setLoading(true);
-//       setError(null);
-      
-//       const res = await api.put('/users/profile', userData);
-      
-//       if (res.data.success) {
-//         setUser(res.data.user);
-//         localStorage.setItem('user', JSON.stringify(res.data.user));
-//       }
-      
-//       return { success: true, data: res.data };
-//     } catch (error) {
-//       setError(error.response?.data?.message || 'Update profile failed');
-//       return { success: false, error: error.response?.data || error.message };
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-  
-//   // Change password
-//   const changePassword = async (currentPassword, newPassword) => {
-//     try {
-//       setLoading(true);
-//       setError(null);
-      
-//       const res = await api.put('/auth/password', { currentPassword, newPassword });
-      
-//       return { success: true, data: res.data };
-//     } catch (error) {
-//       setError(error.response?.data?.message || 'Change password failed');
-//       return { success: false, error: error.response?.data || error.message };
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-  
-//   return (
-//     <AuthContext.Provider
-//       value={{
-//         user,
-//         token,
-//         loading,
-//         error,
-//         needsRoleSelection,
-//         register,
-//         login,
-//         googleLogin,
-//         updateUserRole,
-//         logout,
-//         updateProfile,
-//         changePassword,
-//         isAuthenticated: !!user
-//       }}
-//     >
-//       {children}
-//     </AuthContext.Provider>
-//   );
-// };
-
-
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import api from '../services/api';
 
@@ -255,27 +16,32 @@ export const useAuth = () => {
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(localStorage.getItem('token'));
+  const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [needsRoleSelection, setNeedsRoleSelection] = useState(false);
 
   // Initialize auth state
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    const storedToken = localStorage.getItem('token');
-    
-    if (storedUser && storedToken) {
-      try {
-        setUser(JSON.parse(storedUser));
-        setToken(storedToken);
-        api.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
-      } catch (error) {
-        console.error('Error parsing stored user data:', error);
-        logout();
-      }
+  const storedUser = localStorage.getItem('user');
+  const storedToken = localStorage.getItem('token');
+  
+  console.log('Auth init - stored data:', { hasUser: !!storedUser, hasToken: !!storedToken });
+  
+  if (storedUser && storedToken) {
+    try {
+      const userData = JSON.parse(storedUser);
+      setUser(userData);
+      setToken(storedToken);
+      api.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
+      console.log('Auth restored for user:', userData.name);
+    } catch (error) {
+      console.error('Error parsing stored user data:', error);
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
     }
-  }, []);
+  }
+}, []);
 
   // Set authorization header when token changes
   useEffect(() => {
@@ -344,42 +110,52 @@ export const AuthProvider = ({ children }) => {
   };
 
   // Google login function
-  const googleLogin = async (googleData) => {
-    try {
-      setLoading(true);
-      setError(null);
+  
+const googleLogin = async (credential) => {
+  try {
+    setLoading(true);
+    setError(null);
+    
+    const res = await api.post('/auth/google', { credential });
+    
+    console.log('Frontend received:', res);
+    
+    // Handle different response formats
+    const token = res.token || res.data?.token;
+    const user = res.user || res.data?.user;
+    const success = res.success !== false && (token || user);
+    
+    if (success && token) {
+      const needsRole = user?.needsRoleSelection || false;
       
-      const res = await api.post('/auth/google', googleData);
+      setToken(token);
+      setUser(user);
+      setNeedsRoleSelection(needsRole);
       
-      if (res.data.success) {
-        const { token: newToken, user: newUser, needsRoleSelection: needsRole } = res.data;
-        
-        setToken(newToken);
-        setUser(newUser);
-        setNeedsRoleSelection(needsRole || false);
-        
-        localStorage.setItem('token', newToken);
-        localStorage.setItem('user', JSON.stringify(newUser));
-        
-        return { 
-          success: true, 
-          data: res.data,
-          needsRoleSelection: needsRole 
-        };
-      } else {
-        setError(res.data.message || 'Google login failed');
-        return { success: false, error: res.data.message };
-      }
-    } catch (error) {
-      console.error('Google login error:', error);
-      const errorMessage = error.response?.data?.message || 'Google login failed';
-      setError(errorMessage);
-      return { success: false, error: errorMessage };
-    } finally {
-      setLoading(false);
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(user));
+      
+      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      
+      return { 
+        success: true, 
+        user: user,
+        needsRoleSelection: needsRole 
+      };
+    } else {
+      console.error('Invalid response format:', res);
+      setError('Invalid server response');
+      return { success: false, error: { message: 'Invalid server response' } };
     }
-  };
-
+  } catch (error) {
+    console.error('Google login error:', error);
+    const errorMessage = error.response?.data?.message || error.message || 'Google login failed';
+    setError(errorMessage);
+    return { success: false, error: { message: errorMessage } };
+  } finally {
+    setLoading(false);
+  }
+};
   // Update user role function
   const updateUserRole = async (role) => {
     try {

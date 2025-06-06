@@ -253,6 +253,22 @@ class SocketService {
       reconnectionAttempts: 5,
       reconnectionDelay: 1000
     });
+    // In your connect() method, add after socket initialization:
+console.log('🔌 Attempting socket connection to:', SOCKET_URL);
+console.log('🔐 Using token:', token ? 'Present' : 'Missing');
+
+this.socket.on('connect', () => {
+  console.log('✅ Socket connected:', this.socket.id);
+  this.connected = true;
+});
+
+this.socket.on('connect_error', (error) => {
+  console.log('💥 Socket connection error:', error.message);
+  console.log('💥 Error details:', error);
+});
+this.socket.onAny((eventName, ...args) => {
+  console.log('📡 ALL SOCKET EVENTS:', eventName, args);
+});
 
     // Setup default event handlers
     this.socket.on('connect', () => {
@@ -278,7 +294,7 @@ class SocketService {
     this.socket.on('authenticated', (data) => {
       console.log('🔐 Socket authenticated:', data);
     });
-
+    
     return this.socket;
   }
 
@@ -311,15 +327,35 @@ class SocketService {
   }
 
   // Join a conversation room
-  joinConversation(conversationId) {
-    if (!this.socket || !this.connected) {
-      console.error('Socket not connected');
-      return;
-    }
-
-    this.socket.emit('join_conversation', conversationId); // FIXED: Send just the ID, not object
-    console.log('🚪 Joined conversation:', conversationId);
+  // In socketService.js - joinConversation method:
+joinConversation(conversationId) {
+  if (!this.socket || !this.connected) {
+    console.error('Socket not connected');
+    return;
   }
+
+  this.socket.emit('join_conversation', conversationId);
+  console.log('🚪 Joined conversation:', conversationId);
+}
+
+// In socketService.js - subscribeToMessages method:
+subscribeToMessages(callback) {
+  if (!this.socket) {
+    console.error('Socket not connected');
+    return () => {};
+  }
+
+  console.log('🎯 Setting up new_message listener');
+  
+  this.socket.on('new_message', (data) => {
+    console.log('🔥 RECEIVED new_message:', data);
+    callback(data);
+  });
+
+  return () => {
+    this.socket.off('new_message', callback);
+  };
+}
 
   // Leave a conversation room
   leaveConversation(conversationId) {
@@ -346,21 +382,25 @@ class SocketService {
 
   // Subscribe to new messages
   subscribeToMessages(callback) {
-    if (!this.socket) {
-      console.error('Socket not connected');
-      return () => {};
-    }
-
-    // Store the callback in our listeners map
-    this.listeners.set('new_message', callback);
-    this.socket.on('new_message', callback);
-
-    // Return unsubscribe function
-    return () => {
-      this.socket.off('new_message', callback);
-      this.listeners.delete('new_message');
-    };
+  if (!this.socket) {
+    console.error('Socket not connected');
+    return () => {};
   }
+
+  // Try multiple possible event names
+  this.socket.on('new_message', callback);
+  this.socket.on('message', callback); 
+  this.socket.on('newMessage', callback);
+  this.socket.on('messageCreated', callback);
+
+  // Return unsubscribe function
+  return () => {
+    this.socket.off('new_message', callback);
+    this.socket.off('message', callback);
+    this.socket.off('newMessage', callback);
+    this.socket.off('messageCreated', callback);
+  };
+}
 
   // Subscribe to typing indicators
   subscribeToTyping(callback) {

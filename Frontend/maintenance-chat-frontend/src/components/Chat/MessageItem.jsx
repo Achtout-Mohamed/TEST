@@ -1,4 +1,3 @@
-// // src/components/Chat/MessageItem.jsx
 // import React, { useState, useMemo } from 'react';
 // import { useAuth } from '../../hooks/useAuth';
 // import './MessageItem.css';
@@ -9,28 +8,23 @@
 //   const [isEditing, setIsEditing] = useState(false);
 //   const [editedContent, setEditedContent] = useState(message.content);
   
-//   // Determine message type
-//   const messageType = useMemo(() => {
-//     if (!user || !user.id || !message.sender || !message.sender._id) {
-//       return 'other-message';
-//     }
-    
-//     // Check if it's an AI message
-//     const isAIMessage = message.sender.email === 'ai@system.local' || 
-//                        message.sender.name === 'AI Assistant' ||
-//                        message.sender.name === 'Equipment AI Assistant';
-    
-//     if (isAIMessage) {
-//       return 'ai-message';
-//     }
-    
-//     // Check if it's user's own message
-//     const isOwnMessage = message.sender._id === user.id;
-//     return isOwnMessage ? 'own-message' : 'other-message';
-//   }, [message.sender, user]);
+//   // SIMPLE CHECK: Is this message from the current user?
+//   const isOwnMessage = user && message.sender && 
+//     (message.sender._id === user._id || message.sender._id === user.id);
   
-//   const isOwnMessage = messageType === 'own-message';
-//   const isAIMessage = messageType === 'ai-message';
+//   // Check if it's an AI message
+//   const isAIMessage = message.sender?.email === 'ai@system.local' || 
+//                      message.sender?.name?.includes('AI');
+  
+//   console.log('Message debug:', {
+//     messageId: message._id,
+//     senderId: message.sender?._id,
+//     senderName: message.sender?.name,
+//     userId: user?._id || user?.id,
+//     userName: user?.name,
+//     isOwnMessage: isOwnMessage,
+//     isAIMessage: isAIMessage
+//   });
   
 //   // Format message timestamp
 //   const formatTime = (timestamp) => {
@@ -52,6 +46,28 @@
 //     if (window.confirm('Are you sure you want to delete this message?')) {
 //       onDelete && onDelete(message._id);
 //     }
+//   };
+  
+//   // Get file icon based on type
+//   const getFileIcon = (fileType) => {
+//     if (!fileType) return '📎';
+//     if (fileType.startsWith('image/')) return '🖼️';
+//     if (fileType.startsWith('video/')) return '🎥';
+//     if (fileType.startsWith('audio/')) return '🎵';
+//     if (fileType.includes('pdf')) return '📄';
+//     if (fileType.includes('word')) return '📝';
+//     if (fileType.includes('excel') || fileType.includes('spreadsheet')) return '📊';
+//     if (fileType.includes('zip') || fileType.includes('archive')) return '📦';
+//     return '📎';
+//   };
+
+//   // Format file size
+//   const formatFileSize = (bytes) => {
+//     if (bytes === 0) return '0 Bytes';
+//     const k = 1024;
+//     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+//     const i = Math.floor(Math.log(bytes) / Math.log(k));
+//     return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
 //   };
   
 //   // Render attachments
@@ -101,28 +117,6 @@
 //       </div>
 //     );
 //   };
-
-//   // Get file icon based on type
-//   const getFileIcon = (fileType) => {
-//     if (!fileType) return '📎';
-//     if (fileType.startsWith('image/')) return '🖼️';
-//     if (fileType.startsWith('video/')) return '🎥';
-//     if (fileType.startsWith('audio/')) return '🎵';
-//     if (fileType.includes('pdf')) return '📄';
-//     if (fileType.includes('word')) return '📝';
-//     if (fileType.includes('excel') || fileType.includes('spreadsheet')) return '📊';
-//     if (fileType.includes('zip') || fileType.includes('archive')) return '📦';
-//     return '📎';
-//   };
-
-//   // Format file size
-//   const formatFileSize = (bytes) => {
-//     if (bytes === 0) return '0 Bytes';
-//     const k = 1024;
-//     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-//     const i = Math.floor(Math.log(bytes) / Math.log(k));
-//     return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
-//   };
   
 //   // Parse AI message content for source attribution
 //   const parseAIContent = (content) => {
@@ -145,63 +139,50 @@
 //     return <div className="message-loading">Loading...</div>;
 //   }
   
+//   // SIMPLE STRUCTURE - Clear left/right alignment
 //   return (
-//     <div 
-//       className={`message-item ${messageType}`}
-//       onMouseEnter={() => setShowOptions(true)}
-//       onMouseLeave={() => setShowOptions(false)}
-//     >
-//       <div className="message-container">
+//     <div className={`message-wrapper ${isOwnMessage ? 'own' : 'other'} ${isAIMessage ? 'ai' : ''}`}>
+//       <div className="message-content">
+//         {/* Avatar for other users only */}
 //         {!isOwnMessage && (
-//           <div className="message-avatar">
+//           <div className="avatar">
 //             {message.sender?.avatar ? (
 //               <img src={message.sender.avatar} alt={message.sender.name || 'User'} />
 //             ) : (
-//               <div className="avatar-placeholder">
+//               <div className="avatar-text">
 //                 {isAIMessage ? '🤖' : 
-//                  message.sender?.name 
-//                    ? message.sender.name.charAt(0).toUpperCase() 
-//                    : '?'}
+//                  message.sender?.name ? message.sender.name.charAt(0).toUpperCase() : '?'}
 //               </div>
 //             )}
 //           </div>
 //         )}
         
-//         <div className="message-content-container">
+//         <div className="message-body">
+//           {/* Sender name for other users */}
 //           {!isOwnMessage && (
-//             <div className="message-sender-name">
+//             <div className="sender-name">
 //               {message.sender?.name || 'Unknown'}
 //             </div>
 //           )}
           
-//           <div className="message-bubble">
+//           {/* Message bubble */}
+//           <div className="bubble">
 //             {isEditing ? (
-//               <form onSubmit={handleEditSubmit} className="edit-message-form">
+//               <form onSubmit={handleEditSubmit}>
 //                 <input
 //                   type="text"
 //                   value={editedContent}
 //                   onChange={(e) => setEditedContent(e.target.value)}
-//                   placeholder="Edit your message..."
 //                   autoFocus
 //                 />
-//                 <div className="edit-actions">
-//                   <button type="submit" className="save-btn">Save</button>
-//                   <button 
-//                     type="button" 
-//                     className="cancel-btn"
-//                     onClick={() => {
-//                       setIsEditing(false);
-//                       setEditedContent(message.content);
-//                     }}
-//                   >
-//                     Cancel
-//                   </button>
+//                 <div className="edit-buttons">
+//                   <button type="submit">Save</button>
+//                   <button type="button" onClick={() => setIsEditing(false)}>Cancel</button>
 //                 </div>
 //               </form>
 //             ) : (
 //               <>
-//                 <div className="message-text">
-//                   {/* Render main content with basic formatting */}
+//                 <div className="text">
 //                   {mainContent.split('\n').map((line, index) => (
 //                     <React.Fragment key={index}>
 //                       {line}
@@ -210,49 +191,22 @@
 //                   ))}
 //                 </div>
 //                 {renderAttachments()}
-//                 {/* Render sources for AI messages */}
 //                 {sources && (
-//                   <div className="ai-sources">
-//                     Sources: {sources}
-//                   </div>
+//                   <div className="sources">Sources: {sources}</div>
 //                 )}
 //               </>
 //             )}
 //           </div>
           
-//           <div className="message-meta">
-//             <span className="message-time">{formatTime(message.createdAt)}</span>
-            
-//             {message.createdAt !== message.updatedAt && (
-//               <span className="edited-indicator">(edited)</span>
-//             )}
-            
-//             {/* Read receipt indicator */}
-//             {isOwnMessage && isRead && (
-//               <span className="read-receipt" title="Read">
-//                 ✓
-//               </span>
-//             )}
-//           </div>
+//           {/* Message time */}
+//           <div className="time">{formatTime(message.createdAt)}</div>
 //         </div>
         
-//         {/* Only show options for own messages, not AI messages */}
-//         {showOptions && isOwnMessage && !isEditing && onEdit && onDelete && (
-//           <div className="message-options">
-//             <button 
-//               className="edit-btn" 
-//               onClick={() => setIsEditing(true)}
-//               title="Edit message"
-//             >
-//               ✏️
-//             </button>
-//             <button 
-//               className="delete-btn" 
-//               onClick={handleDelete}
-//               title="Delete message"
-//             >
-//               🗑️
-//             </button>
+//         {/* Edit options for own messages */}
+//         {isOwnMessage && !isEditing && onEdit && onDelete && (
+//           <div className="options">
+//             <button onClick={() => setIsEditing(true)}>✏️</button>
+//             <button onClick={handleDelete}>🗑️</button>
 //           </div>
 //         )}
 //       </div>
@@ -272,22 +226,32 @@ const MessageItem = ({ message, isRead, onEdit, onDelete }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState(message.content);
   
-  // SIMPLE CHECK: Is this message from the current user?
-  const isOwnMessage = user && message.sender && 
-    (message.sender._id === user._id || message.sender._id === user.id);
+  // 🔥 FIXED: Proper user ID comparison with debugging
+  console.log('🔍 MESSAGE DEBUG:', {
+    messageId: message._id,
+    senderId: message.sender?._id,
+    senderName: message.sender?.name,
+    currentUserId: user?._id,
+    currentUserName: user?.name,
+    userObject: user
+  });
+  
+  // Check ALL possible user ID fields
+  const currentUserId = user?._id || user?.id;
+  const senderId = message.sender?._id || message.sender?.id;
+  
+  const isOwnMessage = currentUserId && senderId && (senderId === currentUserId);
   
   // Check if it's an AI message
   const isAIMessage = message.sender?.email === 'ai@system.local' || 
                      message.sender?.name?.includes('AI');
   
-  console.log('Message debug:', {
-    messageId: message._id,
-    senderId: message.sender?._id,
-    senderName: message.sender?.name,
-    userId: user?._id || user?.id,
-    userName: user?.name,
-    isOwnMessage: isOwnMessage,
-    isAIMessage: isAIMessage
+  console.log('🎯 ALIGNMENT RESULT:', {
+    isOwnMessage,
+    isAIMessage,
+    currentUserId,
+    senderId,
+    alignment: isOwnMessage ? 'RIGHT' : 'LEFT'
   });
   
   // Format message timestamp
@@ -400,14 +364,14 @@ const MessageItem = ({ message, isRead, onEdit, onDelete }) => {
   const { mainContent, sources } = parseAIContent(message.content);
   
   if (!user) {
-    return <div className="message-loading">Loading...</div>;
+    return <div className="message-loading">Loading user...</div>;
   }
   
-  // SIMPLE STRUCTURE - Clear left/right alignment
+  // 🔥 CLEAR ALIGNMENT: Use explicit classes
   return (
     <div className={`message-wrapper ${isOwnMessage ? 'own' : 'other'} ${isAIMessage ? 'ai' : ''}`}>
       <div className="message-content">
-        {/* Avatar for other users only */}
+        {/* Avatar for other users only (LEFT side) */}
         {!isOwnMessage && (
           <div className="avatar">
             {message.sender?.avatar ? (
@@ -422,7 +386,7 @@ const MessageItem = ({ message, isRead, onEdit, onDelete }) => {
         )}
         
         <div className="message-body">
-          {/* Sender name for other users */}
+          {/* Sender name for other users only */}
           {!isOwnMessage && (
             <div className="sender-name">
               {message.sender?.name || 'Unknown'}
@@ -466,7 +430,7 @@ const MessageItem = ({ message, isRead, onEdit, onDelete }) => {
           <div className="time">{formatTime(message.createdAt)}</div>
         </div>
         
-        {/* Edit options for own messages */}
+        {/* Edit options for own messages only (RIGHT side) */}
         {isOwnMessage && !isEditing && onEdit && onDelete && (
           <div className="options">
             <button onClick={() => setIsEditing(true)}>✏️</button>

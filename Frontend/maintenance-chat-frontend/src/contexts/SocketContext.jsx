@@ -14,8 +14,10 @@ export const SocketProvider = ({ children }) => {
   
   // Initialize socket connection when authenticated
   useEffect(() => {
+    console.log('Socket init check:', { isAuthenticated, hasToken: !!token });
     if (isAuthenticated && token) {
       // Initialize socket connection
+      console.log('🔌 Initializing socket with token');
       socketService.connect(token);
       
       // Set up connection status handlers
@@ -34,7 +36,9 @@ export const SocketProvider = ({ children }) => {
         socketService.disconnect();
         setConnected(false);
       };
-    }
+    }else {
+    console.log('❌ Socket not connecting - missing auth or token');
+  }
   }, [isAuthenticated, token]);
   
   // Join a conversation

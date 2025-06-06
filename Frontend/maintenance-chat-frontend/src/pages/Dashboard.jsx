@@ -1,410 +1,3 @@
-// import React, { useState } from 'react';
-// import { useNavigate } from 'react-router-dom';
-// import useChat from '../hooks/useChat';
-// import useGroups from '../hooks/useGroups';
-// import { useAuth } from '../hooks/useAuth';
-// import Loader from '../components/Common/Loader';
-// import './Dashboard.css';
-
-// const Dashboard = () => {
-//   const { conversations, loading: loadingConversations, error: conversationsError, createConversation } = useChat();
-//   const { groups, loading: loadingGroups, error: groupsError } = useGroups();
-//   const { logout } = useAuth();
-//   const [activeTab, setActiveTab] = useState('conversations');
-//   const [showNewConversationModal, setShowNewConversationModal] = useState(false);
-//   const [newConversationTitle, setNewConversationTitle] = useState('');
-//   const navigate = useNavigate();
-  
-//   // Handle tab change
-//   const handleTabChange = (tab) => {
-//     setActiveTab(tab);
-//   };
-  
-//   // Handle conversation click
-//   const handleConversationClick = (conversationId) => {
-//     navigate(`/conversations/${conversationId}`);
-//   };
-  
-//   // Handle group click
-//   const handleGroupClick = (groupId) => {
-//     navigate(`/groups/${groupId}`);
-//   };
-  
-//   // Toggle new conversation modal
-//   const toggleNewConversationModal = () => {
-//     setShowNewConversationModal(!showNewConversationModal);
-//     setNewConversationTitle('');
-//   };
-  
-//   // Handle create new conversation
-//   const handleCreateConversation = async () => {
-//     if (!newConversationTitle.trim()) return;
-    
-//     try {
-//       const conversationData = {
-//         title: newConversationTitle.trim()
-//       };
-      
-//       console.log('Creating conversation with:', conversationData);
-      
-//       const newConversation = await createConversation(conversationData);
-      
-//       if (newConversation) {
-//         toggleNewConversationModal();
-//         navigate(`/conversations/${newConversation._id}`);
-//       }
-//     } catch (error) {
-//       console.error('Error creating conversation:', error);
-//     }
-//   };
-  
-//   // Handle logout
-//   const handleLogout = async () => {
-//     await logout();
-//     navigate('/');
-//   };
-  
-//   // Format date for display
-//   const formatDate = (dateString) => {
-//     const options = { 
-//       year: 'numeric', 
-//       month: 'short', 
-//       day: 'numeric',
-//       hour: '2-digit',
-//       minute: '2-digit'
-//     };
-//     return new Date(dateString).toLocaleDateString(undefined, options);
-//   };
-
-//   // Get greeting based on time of day
-//   // const getGreeting = () => {
-//   //   const hour = new Date().getHours();
-//   //   if (hour < 12) return 'Good Morning';
-//   //   if (hour < 17) return 'Good Afternoon';
-//   //   return 'Good Evening';
-//   // };
-
-//   // Render empty state with custom icon
-//   const renderEmptyState = (type) => {
-//     const emptyStates = {
-//       conversations: {
-//         icon: '💬',
-//         title: 'No conversations yet',
-//         subtitle: 'Start your first AI-powered maintenance conversation',
-//       },
-//       shared: {
-//         icon: '🤝',
-//         title: 'Nothing shared yet',
-//         subtitle: 'Collaborate with your team by sharing conversations',
-//       },
-//       groups: {
-//         icon: '👥',
-//         title: 'No groups joined',
-//         subtitle: 'Join or create groups to collaborate with your team',
-//       },
-//     };
-
-//     const state = emptyStates[type];
-    
-//     return (
-//       <div className="empty-state">
-//         <div className="empty-state-icon">
-//           {state.icon}
-//         </div>
-//         <h3>{state.title}</h3>
-//         <p>{state.subtitle}</p>
-//         {type === 'conversations' && (
-//           <button 
-//             className="btn btn-primary"
-//             onClick={toggleNewConversationModal}
-//           >
-//             <span>🚀</span> Start New Conversation
-//           </button>
-//         )}
-//         {type === 'groups' && (
-//           <button 
-//             className="btn btn-primary"
-//             onClick={() => navigate('/groups')}
-//           >
-//             <span>🔍</span> Browse Groups
-//           </button>
-//         )}
-//       </div>
-//     );
-//   };
-  
-//   return (
-//     <div className="dashboard-container">
-//       {/* Cosmic Particles */}
-//       <div className="cosmic-particles">
-//         <div className="particle"></div>
-//         <div className="particle"></div>
-//         <div className="particle"></div>
-//         <div className="particle"></div>
-//         <div className="particle"></div>
-//         <div className="particle"></div>
-//         <div className="particle"></div>
-//         <div className="particle"></div>
-//         <div className="particle"></div>
-//       </div>
-
-//       <div className="dashboard-main">
-//         {/* Futuristic Header */}
-//         <div className="dashboard-header">
-//           <div className="dashboard-title">
-//             <h1>Mission Control</h1>
-//             <div className="dashboard-ai-status">
-//               <div className="ai-indicator"></div>
-//               <span>AI Online</span>
-//             </div>
-//           </div>
-//           <div className="dashboard-actions">
-//             <button 
-//               className="btn btn-primary" 
-//               onClick={toggleNewConversationModal}
-//             >
-//               <span>⚡</span> New Mission
-//             </button>
-//             <button 
-//               className="btn btn-outline-danger" 
-//               onClick={handleLogout}
-//             >
-//               <span>🚪</span> Exit
-//             </button>
-//           </div>
-//         </div>
-        
-//         {/* Holographic Tabs */}
-//         <div className="dashboard-tabs">
-//           <button 
-//             className={`tab-button ${activeTab === 'conversations' ? 'active' : ''}`}
-//             onClick={() => handleTabChange('conversations')}
-//           >
-//             <span>🎯</span> My Missions
-//           </button>
-//           <button 
-//             className={`tab-button ${activeTab === 'shared' ? 'active' : ''}`}
-//             onClick={() => handleTabChange('shared')}
-//           >
-//             <span>🤝</span> Shared Intel
-//           </button>
-//           <button 
-//             className={`tab-button ${activeTab === 'groups' ? 'active' : ''}`}
-//             onClick={() => handleTabChange('groups')}
-//           >
-//             <span>👥</span> Squad Operations
-//           </button>
-//         </div>
-        
-//         {/* Content Area */}
-//         <div className="dashboard-content">
-//           {activeTab === 'conversations' && (
-//             <div className="conversations-list">
-//               <h2>🎯 Active Missions</h2>
-              
-//               {loadingConversations ? (
-//                 <Loader message="Scanning mission database..." />
-//               ) : conversationsError ? (
-//                 <div className="error-message">
-//                   <strong>Mission Failed:</strong> {conversationsError}
-//                 </div>
-//               ) : conversations.filter(c => !c.isShared).length === 0 ? (
-//                 renderEmptyState('conversations')
-//               ) : (
-//                 <ul className="conversations-items">
-//                   {conversations
-//                     .filter(conversation => !conversation.isShared && !conversation.groupId)
-//                     .map(conversation => (
-//                       <li 
-//                         key={conversation._id} 
-//                         className="conversation-item"
-//                         onClick={() => handleConversationClick(conversation._id)}
-//                       >
-//                         <div className="conversation-icon">
-//                           <span>🤖</span>
-//                         </div>
-//                         <div className="conversation-details">
-//                           <h3>{conversation.title}</h3>
-//                           <p className="conversation-preview">
-//                             {conversation.lastMessage ? (
-//                               conversation.lastMessage.content.substring(0, 80) + 
-//                               (conversation.lastMessage.content.length > 80 ? '...' : '')
-//                             ) : 'Mission briefing pending...'}
-//                           </p>
-//                           <div className="conversation-meta">
-//                             <span className="conversation-date">
-//                               <span>📅</span> {formatDate(conversation.lastMessageAt || conversation.createdAt)}
-//                             </span>
-//                             {conversation.unreadCount > 0 && (
-//                               <span className="unread-badge">
-//                                 {conversation.unreadCount} new
-//                               </span>
-//                             )}
-//                           </div>
-//                         </div>
-//                       </li>
-//                     ))}
-//                 </ul>
-//               )}
-//             </div>
-//           )}
-          
-//           {activeTab === 'shared' && (
-//             <div className="shared-conversations-list">
-//               <h2>🤝 Shared Intelligence</h2>
-              
-//               {loadingConversations ? (
-//                 <Loader message="Decrypting shared data..." />
-//               ) : conversationsError ? (
-//                 <div className="error-message">
-//                   <strong>Access Denied:</strong> {conversationsError}
-//                 </div>
-//               ) : conversations.filter(c => c.isShared).length === 0 ? (
-//                 renderEmptyState('shared')
-//               ) : (
-//                 <ul className="conversations-items">
-//                   {conversations
-//                     .filter(conversation => conversation.isShared)
-//                     .map(conversation => (
-//                       <li 
-//                         key={conversation._id} 
-//                         className="conversation-item shared"
-//                         onClick={() => handleConversationClick(conversation._id)}
-//                       >
-//                         <div className="conversation-icon">
-//                           <span>🔗</span>
-//                         </div>
-//                         <div className="conversation-details">
-//                           <h3>{conversation.title}</h3>
-//                           <p className="conversation-preview">
-//                             {conversation.lastMessage ? (
-//                               conversation.lastMessage.content.substring(0, 80) + 
-//                               (conversation.lastMessage.content.length > 80 ? '...' : '')
-//                             ) : 'Classified information...'}
-//                           </p>
-//                           <div className="conversation-meta">
-//                             <span className="shared-by">
-//                               <span>👤</span> Shared by: {conversation.sharedBy?.name || 'Agent Unknown'}
-//                             </span>
-//                             <span className="conversation-date">
-//                               <span>📅</span> {formatDate(conversation.lastMessageAt || conversation.createdAt)}
-//                             </span>
-//                             {conversation.unreadCount > 0 && (
-//                               <span className="unread-badge">
-//                                 {conversation.unreadCount} new
-//                               </span>
-//                             )}
-//                           </div>
-//                         </div>
-//                       </li>
-//                     ))}
-//                 </ul>
-//               )}
-//             </div>
-//           )}
-          
-//           {activeTab === 'groups' && (
-//             <div className="groups-list">
-//               <h2>👥 Squad Operations</h2>
-              
-//               {loadingGroups ? (
-//                 <Loader message="Establishing squad connections..." />
-//               ) : groupsError ? (
-//                 <div className="error-message">
-//                   <strong>Squad Error:</strong> {groupsError}
-//                 </div>
-//               ) : groups.length === 0 ? (
-//                 renderEmptyState('groups')
-//               ) : (
-//                 <ul className="groups-items">
-//                   {groups.map(group => (
-//                     <li 
-//                       key={group._id} 
-//                       className="group-item"
-//                       onClick={() => handleGroupClick(group._id)}
-//                     >
-//                       <div className="group-icon">
-//                         <span>🏢</span>
-//                       </div>
-//                       <div className="group-details">
-//                         <h3>{group.name}</h3>
-//                         <p className="group-description">
-//                           {group.description || 'Elite maintenance squad'}
-//                         </p>
-//                         <div className="group-meta">
-//                           <span className="member-count">
-//                             <span>👥</span> {group.members?.length || 0} operatives
-//                           </span>
-//                           <span className="group-date">
-//                             <span>📅</span> Est. {formatDate(group.createdAt)}
-//                           </span>
-//                           {group.unreadCount > 0 && (
-//                             <span className="unread-badge">
-//                               {group.unreadCount} alerts
-//                             </span>
-//                           )}
-//                         </div>
-//                       </div>
-//                     </li>
-//                   ))}
-//                 </ul>
-//               )}
-//             </div>
-//           )}
-//         </div>
-//       </div>
-      
-//       {/* Futuristic Modal */}
-//       {showNewConversationModal && (
-//         <div className="modal-overlay" onClick={toggleNewConversationModal}>
-//           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-//             <div className="modal-header">
-//               <h3>🚀 Initialize New Mission</h3>
-//               <button 
-//                 className="close-button"
-//                 onClick={toggleNewConversationModal}
-//               >
-//                 ×
-//               </button>
-//             </div>
-//             <div className="modal-body">
-//               <div className="form-group">
-//                 <label htmlFor="conversationTitle">Mission Codename</label>
-//                 <input
-//                   type="text"
-//                   id="conversationTitle"
-//                   value={newConversationTitle}
-//                   onChange={(e) => setNewConversationTitle(e.target.value)}
-//                   placeholder="Enter mission designation..."
-//                   onKeyPress={(e) => e.key === 'Enter' && handleCreateConversation()}
-//                 />
-//               </div>
-//             </div>
-//             <div className="modal-footer">
-//               <button 
-//                 className="btn btn-secondary"
-//                 onClick={toggleNewConversationModal}
-//               >
-//                 Cancel Mission
-//               </button>
-//               <button 
-//                 className="btn btn-primary"
-//                 onClick={handleCreateConversation}
-//                 disabled={!newConversationTitle.trim()}
-//               >
-//                 <span>🚀</span> Launch Mission
-//               </button>
-//             </div>
-//           </div>
-//         </div>
-//       )}
-//     </div>
-//   );
-// };
-
-// export default Dashboard;
-
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useChat from '../hooks/useChat';
@@ -922,59 +515,181 @@ const Dashboard = () => {
             </div>
           )}
           
-          {activeTab === 'shared' && (
-            <div className="shared-conversations-list">
-              <h2>🤝 Shared Intelligence</h2>
-              
-              {loadingConversations ? (
-                <Loader message="Decrypting shared data..." />
-              ) : conversationsError ? (
-                <div className="error-message">
-                  <strong>Access Denied:</strong> {conversationsError}
+
+{activeTab === 'shared' && (
+  <div className="shared-conversations-list">
+    <h2>🤝 Shared Intelligence</h2>
+    
+    {loadingConversations ? (
+      <Loader message="Decrypting shared data..." />
+    ) : conversationsError ? (
+      <div className="error-message">
+        <strong>Access Denied:</strong> {conversationsError}
+      </div>
+    ) : (() => {
+      // 🔥 FILTER: Show conversations where current user was ADDED by someone else
+      const sharedConversations = conversations.filter(conversation => {
+        // Skip if no user
+        if (!user?._id) return false;
+        
+        // Skip conversations created by current user
+        if (conversation.createdBy?._id === user._id || conversation.owner?._id === user._id) {
+          return false;
+        }
+        
+        // Show if current user is in participants but didn't create it
+        const isParticipant = conversation.participants?.some(p => 
+          (p._id || p) === user._id
+        );
+        
+        // Show if current user is in members but didn't create it  
+        const isMember = conversation.members?.some(m => 
+          (m._id || m) === user._id
+        );
+        
+        // Show if conversation has sharedWith array containing current user
+        const isSharedWith = conversation.sharedWith?.some(u => 
+          (u._id || u) === user._id
+        );
+        
+        // Show if conversation is marked as shared and user has access
+        const isSharedConversation = conversation.isShared && 
+          (isParticipant || isMember || isSharedWith);
+        
+        return isParticipant || isMember || isSharedWith || isSharedConversation;
+      });
+      
+      console.log('🔍 SHARED CONVERSATIONS FILTER:', {
+        totalConversations: conversations.length,
+        sharedConversations: sharedConversations.length,
+        currentUserId: user?._id,
+        sharedDetails: sharedConversations.map(c => ({
+          id: c._id,
+          title: c.title,
+          createdBy: c.createdBy?.name || c.owner?.name,
+          participants: c.participants?.length || 0,
+          members: c.members?.length || 0,
+          sharedWith: c.sharedWith?.length || 0
+        }))
+      });
+      
+      return sharedConversations.length === 0 ? (
+        renderEmptyState('shared')
+      ) : (
+        <ul className="conversations-items">
+          {sharedConversations.map(conversation => (
+            <li 
+              key={conversation._id} 
+              className="conversation-item shared"
+              onClick={() => handleConversationClick(conversation._id)}
+            >
+              <div className="conversation-icon">
+                <span>🔗</span>
+              </div>
+              <div className="conversation-details">
+                <h3>{conversation.title}</h3>
+                <p className="conversation-preview">
+                  {conversation.lastMessage ? (
+                    conversation.lastMessage.content.substring(0, 80) + 
+                    (conversation.lastMessage.content.length > 80 ? '...' : '')
+                  ) : 'Classified information...'}
+                </p>
+                <div className="conversation-meta">
+                  <span className="shared-by">
+                    <span>👤</span> Shared by: {
+                      conversation.createdBy?.name || 
+                      conversation.owner?.name || 
+                      conversation.sharedBy?.name || 
+                      'Agent Unknown'
+                    }
+                  </span>
+                  <span className="conversation-date">
+                    <span>📅</span> {formatDate(conversation.lastMessageAt || conversation.createdAt)}
+                  </span>
+                  {conversation.unreadCount > 0 && (
+                    <span className="unread-badge">
+                      {conversation.unreadCount} new
+                    </span>
+                  )}
                 </div>
-              ) : conversations.filter(c => c.isShared).length === 0 ? (
-                renderEmptyState('shared')
-              ) : (
-                <ul className="conversations-items">
-                  {conversations
-                    .filter(conversation => conversation.isShared)
-                    .map(conversation => (
-                      <li 
-                        key={conversation._id} 
-                        className="conversation-item shared"
-                        onClick={() => handleConversationClick(conversation._id)}
-                      >
-                        <div className="conversation-icon">
-                          <span>🔗</span>
-                        </div>
-                        <div className="conversation-details">
-                          <h3>{conversation.title}</h3>
-                          <p className="conversation-preview">
-                            {conversation.lastMessage ? (
-                              conversation.lastMessage.content.substring(0, 80) + 
-                              (conversation.lastMessage.content.length > 80 ? '...' : '')
-                            ) : 'Classified information...'}
-                          </p>
-                          <div className="conversation-meta">
-                            <span className="shared-by">
-                              <span>👤</span> Shared by: {conversation.sharedBy?.name || 'Agent Unknown'}
-                            </span>
-                            <span className="conversation-date">
-                              <span>📅</span> {formatDate(conversation.lastMessageAt || conversation.createdAt)}
-                            </span>
-                            {conversation.unreadCount > 0 && (
-                              <span className="unread-badge">
-                                {conversation.unreadCount} new
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      </li>
-                    ))}
-                </ul>
-              )}
-            </div>
-          )}
+              </div>
+            </li>
+          ))}
+        </ul>
+      );
+    })()}
+  </div>
+)}
+
+{activeTab === 'conversations' && (
+  <div className="conversations-list">
+    <h2>🎯 Active Missions</h2>
+    
+    {loadingConversations ? (
+      <Loader message="Scanning mission database..." />
+    ) : conversationsError ? (
+      <div className="error-message">
+        <strong>Mission Failed:</strong> {conversationsError}
+      </div>
+    ) : (() => {
+      // 🔥 FILTER: Show only conversations CREATED by current user
+      const myConversations = conversations.filter(conversation => {
+        // Skip if no user
+        if (!user?._id) return false;
+        
+        // Skip group conversations
+        if (conversation.groupId) return false;
+        
+        // Show only conversations created by current user OR where user is the owner
+        const isOwner = conversation.createdBy?._id === user._id || 
+                       conversation.owner?._id === user._id;
+        
+        // If no explicit owner, check if user is the only participant
+        const isSoloConversation = !conversation.createdBy && !conversation.owner &&
+          (!conversation.participants || conversation.participants.length <= 1);
+        
+        return isOwner || isSoloConversation;
+      });
+      
+      return myConversations.length === 0 ? (
+        renderEmptyState('conversations')
+      ) : (
+        <ul className="conversations-items">
+          {myConversations.map(conversation => (
+            <li 
+              key={conversation._id} 
+              className="conversation-item"
+              onClick={() => handleConversationClick(conversation._id)}
+            >
+              <div className="conversation-icon">
+                <span>🤖</span>
+              </div>
+              <div className="conversation-details">
+                <h3>{conversation.title}</h3>
+                <p className="conversation-preview">
+                  {conversation.lastMessage ? (
+                    conversation.lastMessage.content.substring(0, 80) + 
+                    (conversation.lastMessage.content.length > 80 ? '...' : '')
+                  ) : 'Mission briefing pending...'}
+                </p>
+                <div className="conversation-meta">
+                  <span className="conversation-date">
+                    <span>📅</span> {formatDate(conversation.lastMessageAt || conversation.createdAt)}
+                  </span>
+                  {conversation.unreadCount > 0 && (
+                    <span className="unread-badge">
+                      {conversation.unreadCount} new
+                    </span>
+                  )}
+                </div>
+              </div>
+            </li>
+          ))}
+        </ul>
+      );
+    })()}
+  </div>
+)}
           
           {activeTab === 'groups' && (
             <div className="groups-list">

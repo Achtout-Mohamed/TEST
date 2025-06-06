@@ -367,6 +367,7 @@ export const MessageProvider = ({ children }) => {
 
   // Handle receiving new message via socket
   const handleNewMessage = useCallback((message) => {
+    console.log('🔥 RECEIVED MESSAGE VIA SOCKET:', message);
     // Only add the message if it belongs to the current conversation
     if (currentConversation && message.conversationId === currentConversation._id) {
       setMessages(prev => {
@@ -397,27 +398,25 @@ export const MessageProvider = ({ children }) => {
 
   // Subscribe to socket events when connected and conversation changes
   useEffect(() => {
-    if (connected && currentConversation) {
-      // Subscribe to new messages
-      const unsubscribeMessages = subscribeToMessages(handleNewMessage);
-      
-      // Subscribe to read receipts
-      const unsubscribeReadReceipts = subscribeToReadReceipts(handleReadReceipt);
-      
-      // Cleanup on unmount or when conversation changes
-      return () => {
-        unsubscribeMessages();
-        unsubscribeReadReceipts();
-      };
-    }
-  }, [
-    connected, 
-    currentConversation, 
-    subscribeToMessages, 
-    subscribeToReadReceipts, 
-    handleNewMessage, 
-    handleReadReceipt
-  ]);
+  if (connected && currentConversation) {
+    console.log('🎯 Setting up socket subscriptions for conversation:', currentConversation._id);
+    
+    // Subscribe to new messages
+    const unsubscribeMessages = subscribeToMessages(handleNewMessage);
+    
+    // Subscribe to read receipts
+    const unsubscribeReadReceipts = subscribeToReadReceipts(handleReadReceipt);
+    
+    console.log('✅ Socket subscriptions active');
+    
+    // Cleanup on unmount or when conversation changes
+    return () => {
+      console.log('🧹 Cleaning up socket subscriptions');
+      unsubscribeMessages();
+      unsubscribeReadReceipts();
+    };
+  }
+}, [connected, currentConversation]);
 
   // Clear messages (when changing conversations)
   const clearMessages = useCallback(() => {

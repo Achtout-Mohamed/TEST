@@ -8,7 +8,9 @@ const logger = require('../../utils/logger');
 exports.protect = async (req, res, next) => {
   try {
     let token;
-    
+    // In your auth.js middleware, add this line:
+console.log('Received token:', token ? 'Present' : 'Missing');
+console.log('Token starts with:', token ? token.substring(0, 20) + '...' : 'N/A');
     // Check if token exists in Authorization header
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
       token = req.headers.authorization.split(' ')[1];

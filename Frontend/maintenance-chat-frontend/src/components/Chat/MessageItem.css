@@ -1,64 +1,93 @@
-/* MessageItem.css - Simple and clear alignment */
+/* MessageItem.css - FINAL CLEAN FIX + NO HORIZONTAL SCROLL */
 
 .message-wrapper {
   width: 100%;
+  max-width: 100%;
   margin-bottom: 16px;
-  display: flex;
+  display: flex !important;
+  padding: 0 10px;
+  clear: both;
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
-/* Own messages - RIGHT side */
+/* 🔥 OWN MESSAGES - RIGHT SIDE */
 .message-wrapper.own {
-  justify-content: flex-end;
+  justify-content: flex-end !important;
+  flex-direction: row !important;
 }
 
 .message-wrapper.own .message-content {
-  flex-direction: row-reverse;
-  max-width: 70%;
+  flex-direction: row-reverse !important;
+  max-width: 50% !important;
+  display: flex !important;
+  box-sizing: border-box;
 }
 
 .message-wrapper.own .bubble {
-  background: #007bff;
-  color: white;
-  margin-right: 8px;
+  background: #007bff !important;
+  color: white !important;
+  margin-left: 8px !important;
+  margin-right: 0 !important;
+  border-radius: 18px 4px 18px 18px !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
 }
 
 .message-wrapper.own .time {
-  text-align: right;
+  text-align: right !important;
+  color: rgba(255, 255, 255, 0.6) !important;
 }
 
-/* Other users' messages - LEFT side */
+/* 🔥 OTHER USERS - LEFT SIDE */
 .message-wrapper.other {
-  justify-content: flex-start;
+  justify-content: flex-start !important;
+  flex-direction: row !important;
 }
 
 .message-wrapper.other .message-content {
-  flex-direction: row;
-  max-width: 70%;
+  flex-direction: row !important;
+  max-width: 50% !important;
+  display: flex !important;
+  box-sizing: border-box;
 }
 
 .message-wrapper.other .bubble {
-  background: #f1f1f1;
-  color: #333;
-  margin-left: 8px;
+  background: #f1f1f1 !important;
+  color: #333 !important;
+  margin-right: 8px !important;
+  margin-left: 0 !important;
+  border-radius: 4px 18px 18px 18px !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
 }
 
 .message-wrapper.other .time {
-  text-align: left;
+  text-align: left !important;
+  color: #888 !important;
 }
 
-/* AI messages - LEFT side with special styling */
+/* 🔥 AI MESSAGES - LEFT SIDE */
 .message-wrapper.ai .bubble {
-  background: #e8f5e8;
-  color: #155724;
-  border-left: 4px solid #28a745;
+  background: #e8f5e8 !important;
+  color: #155724 !important;
+  border-left: 4px solid #28a745 !important;
+  border-radius: 4px 18px 18px 18px !important;
 }
 
+.message-wrapper.ai .avatar-text {
+  background: #28a745 !important;
+  color: white !important;
+}
+
+/* Message content layout */
 .message-content {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 8px !important;
 }
 
+/* Avatar styling */
 .avatar {
   width: 32px;
   height: 32px;
@@ -81,8 +110,16 @@
   font-size: 14px;
   font-weight: bold;
   color: #666;
+  background: #ddd;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
 }
 
+/* Message body */
 .message-body {
   display: flex;
   flex-direction: column;
@@ -98,30 +135,44 @@
 }
 
 .bubble {
-  padding: 12px 16px;
+  padding: 6px 10px;
   border-radius: 18px;
   word-wrap: break-word;
+  word-break: break-word;
   width: fit-content;
   max-width: 100%;
+  min-width: 0;
+  position: relative;
+  overflow-wrap: break-word;
+  hyphens: auto;
+  box-sizing: border-box;
 }
 
 .text {
   line-height: 1.4;
   white-space: pre-wrap;
+  margin: 0;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .time {
   font-size: 11px;
-  color: #888;
   margin-top: 4px;
+  font-weight: 400;
 }
 
+/* Edit and delete options */
 .options {
   display: flex;
   gap: 4px;
   margin-left: 8px;
   opacity: 0;
   transition: opacity 0.2s;
+  align-self: flex-start;
+  margin-top: 4px;
 }
 
 .message-wrapper:hover .options {
@@ -129,15 +180,17 @@
 }
 
 .options button {
-  background: none;
+  background: rgba(0, 0, 0, 0.1);
   border: none;
   cursor: pointer;
-  padding: 4px;
+  padding: 4px 6px;
   border-radius: 4px;
+  font-size: 12px;
+  transition: background 0.2s;
 }
 
 .options button:hover {
-  background: rgba(0, 0, 0, 0.1);
+  background: rgba(0, 0, 0, 0.2);
 }
 
 /* Edit form */
@@ -148,11 +201,22 @@
 }
 
 .edit-buttons button {
-  padding: 4px 8px;
+  padding: 4px 12px;
   border: none;
   border-radius: 4px;
   cursor: pointer;
   font-size: 12px;
+  font-weight: 500;
+}
+
+.edit-buttons button[type="submit"] {
+  background: #007bff;
+  color: white;
+}
+
+.edit-buttons button[type="button"] {
+  background: #6c757d;
+  color: white;
 }
 
 /* Attachments */
@@ -179,6 +243,11 @@
 .attachment-name {
   color: #007bff;
   text-decoration: none;
+  font-weight: 500;
+}
+
+.attachment-name:hover {
+  text-decoration: underline;
 }
 
 .attachment-size {
@@ -189,6 +258,7 @@
 .image-attachment img {
   max-width: 200px;
   border-radius: 8px;
+  margin-bottom: 4px;
 }
 
 .sources {
@@ -198,10 +268,74 @@
   border-radius: 4px;
   font-size: 12px;
   color: #155724;
+  border-left: 3px solid #28a745;
 }
 
 .message-loading {
   padding: 16px;
   text-align: center;
   color: #666;
+  font-style: italic;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .message-wrapper {
+    padding: 0 5px;
+  }
+  
+  .message-wrapper.own .message-content,
+  .message-wrapper.other .message-content {
+    max-width: 65% !important;
+  }
+  
+  .bubble {
+    padding: 5px 8px;
+    font-size: 14px;
+  }
+  
+  .avatar {
+    width: 24px;
+    height: 24px;
+  }
+  
+  .avatar-text {
+    font-size: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .message-wrapper {
+    padding: 0 3px;
+  }
+  
+  .message-wrapper.own .message-content,
+  .message-wrapper.other .message-content {
+    max-width: 75% !important;
+  }
+  
+  .bubble {
+    padding: 4px 6px;
+    font-size: 13px;
+  }
+  
+  .avatar {
+    width: 20px;
+    height: 20px;
+  }
+  
+  .avatar-text {
+    font-size: 9px;
+  }
+}
+
+/* EMERGENCY: Force no horizontal scroll */
+.messages-list {
+  max-width: 100vw !important;
+  overflow-x: hidden !important;
+  box-sizing: border-box !important;
+}
+
+* {
+  box-sizing: border-box !important;
 }
